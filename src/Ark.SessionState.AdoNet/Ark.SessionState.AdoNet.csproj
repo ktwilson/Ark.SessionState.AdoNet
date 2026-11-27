@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Ark.SessionState.AdoNet</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <PackageId>Ark.SessionState.AdoNet</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Kevin Wilson</Authors>
+    <Company>Ark Technology</Company>
+    <Product>Ark.SessionState.AdoNet</Product>
+    <Description>ASP.NET (System.Web) custom session state store provider that works with any ADO.NET database: SQL Server, Oracle, PostgreSQL, MySQL/MariaDB, SQLite, and ODBC/OLE DB sources.</Description>
+    <PackageTags>aspnet;session;sessionstate;session-state-provider;ado.net;oracle;sqlserver;postgresql;mysql;sqlite</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ktwilson/Ark.SessionState.AdoNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ktwilson/Ark.SessionState.AdoNet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\sql\*.sql" Pack="true" PackagePath="content\sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets the project build on machines without the .NET Framework targeting pack (e.g. CI). -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ark.SessionState.AdoNet.Tests" />
+  </ItemGroup>
+
+</Project>
