@@ -26,4 +26,6 @@ Then open http://localhost:5080.
 2. In `Web.config`, replace the `SessionState` connection string with one of the commented examples.
 3. Rebuild and run. The site creates the table from the matching script in `sql/` if it doesn't exist.
 
+Creating the table is a sample-only convenience; the provider itself never creates tables. To test with a least-privilege account, create the table yourself, set `Sample:CreateSchema` to `false` in `Web.config`, and connect as a user with only `SELECT`, `INSERT`, `UPDATE` and `DELETE` on the table. See [Database permissions](../../README.md#database-permissions) in the main README.
+
 The site's endpoints are in `Handlers.cs`, and the startup schema setup is in `Global.asax.cs`.

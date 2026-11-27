@@ -40,6 +40,8 @@ Then install the ADO.NET driver for your database (e.g. `Oracle.ManagedDataAcces
 
 Run the script for your database from the [`sql`](sql) folder. The table name defaults to `AspNetSessionState`, and you can change it (see `tableName` below).
 
+The provider never creates or alters tables, so the account your app connects with doesn't need rights to do that. See [Database permissions](#database-permissions).
+
 ### 2. Add a connection string
 
 ```xml
@@ -78,6 +80,69 @@ Run the script for your database from the [`sql`](sql) folder. The table name de
 | `cleanupInterval` | `10` | Minutes between sweeps that delete expired sessions. `0` turns the sweep off, so schedule a database job instead. |
 | `commandTimeout` | driver default | Command timeout in seconds. |
 | `writeExceptionsToEventLog` | `false` | If `true`, database errors go to the Windows Application event log and a generic `ProviderException` is thrown. |
+
+## Database permissions
+
+The provider only reads and writes rows in an existing table. It never runs `CREATE`, `ALTER` or `DROP`, so you can create the table once with an admin account and run the app with a least-privilege account.
+
+| Who | Needs |
+|---|---|
+| Admin / DBA (once) | Rights to run the script from `sql/`, i.e. create a table and its indexes |
+| App's runtime account | Connect, plus `SELECT`, `INSERT`, `UPDATE`, `DELETE` on the session table only |
+
+The background cleanup only needs `DELETE`.
+
+If the table lives in a different schema from the one the runtime account logs into, set `tableName` to the schema-qualified name, e.g. `tableName="SESSION_OWNER.AspNetSessionState"`.
+
+<details>
+<summary>Oracle</summary>
+
+Run `sql/oracle.sql` as the schema that will own the table (here `SESSION_OWNER`), then as a DBA:
+
+```sql
+CREATE USER SESSION_APP IDENTIFIED BY "...";
+GRANT CREATE SESSION TO SESSION_APP;
+GRANT SELECT, INSERT, UPDATE, DELETE ON SESSION_OWNER.AspNetSessionState TO SESSION_APP;
+```
+
+Connect as `SESSION_APP` and either set `tableName="SESSION_OWNER.AspNetSessionState"`, or create a synonym so the default name resolves:
+
+```sql
+CREATE SYNONYM SESSION_APP.AspNetSessionState FOR SESSION_OWNER.AspNetSessionState;
+```
+
+The runtime account needs no tablespace quota; rows are stored under the owner's quota.
+</details>
+
+<details>
+<summary>SQL Server</summary>
+
+```sql
+CREATE USER [app_user] FOR LOGIN [app_login];   -- or a Windows / app-pool identity
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.AspNetSessionState TO [app_user];
+```
+</details>
+
+<details>
+<summary>PostgreSQL</summary>
+
+```sql
+GRANT USAGE ON SCHEMA public TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON aspnetsessionstate TO app_user;
+```
+
+The script creates the table with unquoted names, so PostgreSQL stores them in lowercase. The provider's unquoted SQL matches either way.
+</details>
+
+<details>
+<summary>MySQL / MariaDB</summary>
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON mydb.AspNetSessionState TO 'app_user'@'%';
+```
+</details>
+
+SQLite has no database users. The app pool identity needs read/write access to the database file and its folder (SQLite writes a journal file next to it).
 
 ## Registering the ADO.NET driver
 
