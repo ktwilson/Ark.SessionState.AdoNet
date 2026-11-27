@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <PackageId>Ark.SessionState.AdoNet</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Kevin Wilson</Authors>
     <Company>Ark Technology</Company>
     <Product>Ark.SessionState.AdoNet</Product>
