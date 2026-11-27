@@ -194,6 +194,20 @@ dotnet pack src/Ark.SessionState.AdoNet -c Release
 
 The tests run the data layer against an in-memory SQLite database.
 
+## Releasing
+
+Releases are published to nuget.org by GitHub Actions using [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing), so no API key is stored. To release a version:
+
+1. Set `<Version>` in `src/Ark.SessionState.AdoNet/Ark.SessionState.AdoNet.csproj` and update `CHANGELOG.md`.
+2. Commit, then tag and push the tag:
+
+   ```powershell
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+The `release` workflow checks that the tag matches the csproj version. It then builds, runs the tests, packs, and pushes to nuget.org.
+
 ## License
 
 [MIT](LICENSE)
