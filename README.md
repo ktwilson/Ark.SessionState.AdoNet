@@ -42,6 +42,36 @@ Run the script for your database from the [`sql`](sql) folder. The table name de
 
 The provider never creates or alters tables, so the account your app connects with doesn't need rights to do that. See [Database permissions](#database-permissions).
 
+When you install the NuGet package, the scripts are copied into your project's `sql` folder.
+
+<details>
+<summary>Example: SQL Server LocalDB (local development)</summary>
+
+LocalDB comes with Visual Studio. From your project folder, run these in a terminal (`sqlcmd` is installed with Visual Studio's SQL Server tools):
+
+```powershell
+sqlcmd -S "(localdb)\MSSQLLocalDB" -Q "IF DB_ID('MyAppSessions') IS NULL CREATE DATABASE MyAppSessions"
+sqlcmd -S "(localdb)\MSSQLLocalDB" -d MyAppSessions -b -i "sql\sqlserver.sql"
+```
+
+Check that the table exists:
+
+```powershell
+sqlcmd -S "(localdb)\MSSQLLocalDB" -d MyAppSessions -Q "SELECT name FROM sys.tables"
+```
+
+Then use the database in your connection string:
+
+```xml
+<add name="SessionState" providerName="System.Data.SqlClient"
+     connectionString="Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=MyAppSessions;Integrated Security=True" />
+```
+
+Without the command line: in Visual Studio, open **View → SQL Server Object Explorer**, expand `(localdb)\MSSQLLocalDB`, right-click **Databases → Add New Database**, then right-click the new database, choose **New Query**, paste `sql\sqlserver.sql` and run it.
+
+If the app reports *Cannot open database "…" requested by the login. The login failed.*, the database doesn't exist in the LocalDB instance your app uses. Create it as above. LocalDB is per Windows user, so the app must run as you (IIS Express does; full IIS app pools don't).
+</details>
+
 ### 2. Add a connection string
 
 ```xml
