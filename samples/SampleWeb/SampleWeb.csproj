@@ -21,6 +21,11 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 
+  <!-- Oracle driver, so the sample can switch to Oracle by changing only the connection string. -->
+  <ItemGroup>
+    <PackageReference Include="Oracle.ManagedDataAccess" Version="23.26.400" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Ark.SessionState.AdoNet\Ark.SessionState.AdoNet.csproj" />
   </ItemGroup>
