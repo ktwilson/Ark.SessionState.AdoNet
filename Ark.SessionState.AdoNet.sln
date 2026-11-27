@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E5EF1A00
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ark.SessionState.AdoNet.Tests", "tests\Ark.SessionState.AdoNet.Tests\Ark.SessionState.AdoNet.Tests.csproj", "{EE7C1FC4-4D41-4049-9423-AB73E3022CEB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{B5B550ED-FF4F-4D4D-8348-10CFFDC0C560}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWeb", "samples\SampleWeb\SampleWeb.csproj", "{43FC8B68-A7D1-4ECC-A009-8BE96368144A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +32,14 @@ Global
 		{EE7C1FC4-4D41-4049-9423-AB73E3022CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE7C1FC4-4D41-4049-9423-AB73E3022CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE7C1FC4-4D41-4049-9423-AB73E3022CEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43FC8B68-A7D1-4ECC-A009-8BE96368144A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43FC8B68-A7D1-4ECC-A009-8BE96368144A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43FC8B68-A7D1-4ECC-A009-8BE96368144A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43FC8B68-A7D1-4ECC-A009-8BE96368144A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1C039517-9F83-464B-915C-14CBD64FF4E1} = {E6153CCF-2CBF-4A01-B216-8A4AF3D56A8F}
 		{EE7C1FC4-4D41-4049-9423-AB73E3022CEB} = {E5EF1A00-EF2C-4CD5-9AF6-6B411522747B}
+		{43FC8B68-A7D1-4ECC-A009-8BE96368144A} = {B5B550ED-FF4F-4D4D-8348-10CFFDC0C560}
 	EndGlobalSection
 EndGlobal

@@ -194,6 +194,8 @@ dotnet pack src/Ark.SessionState.AdoNet -c Release
 
 The tests run the data layer against an in-memory SQLite database.
 
+To try the provider in a real ASP.NET site, see [samples/SampleWeb](samples/SampleWeb). It runs in IIS Express against SQL Server LocalDB and has a page of automated checks for saving, locking, timeouts, Abandon and expiry.
+
 ## Releasing
 
 Releases are published to nuget.org by GitHub Actions using [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing), so no API key is stored. To release a version:

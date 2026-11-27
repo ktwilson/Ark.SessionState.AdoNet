@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Sample site: schema scripts copied at build time
+samples/SampleWeb/App_Data/sql/

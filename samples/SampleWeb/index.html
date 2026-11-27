@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session State Test</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --border: #e2e1dc;
+    --accent: #2f5fd0; --pass: #1e7d3c; --fail: #b3261e; --code-bg: #f0efeb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --panel: #1f1f1d; --text: #ecebe6; --muted: #9c9b95; --border: #33322f;
+      --accent: #7ea2ff; --pass: #5cc77c; --fail: #ff8a80; --code-bg: #272724;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  p.sub { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+           background: var(--panel); color: var(--text); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:disabled { opacity: .5; cursor: default; }
+  input { font: inherit; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border);
+          background: var(--bg); color: var(--text); width: 120px; }
+  pre { background: var(--code-bg); border-radius: 6px; padding: 12px; margin: 12px 0 0;
+        overflow: auto; font-size: 13px; max-height: 360px; }
+  ul.checks { list-style: none; padding: 0; margin: 12px 0 0; }
+  ul.checks li { padding: 4px 0; border-bottom: 1px solid var(--border); }
+  ul.checks li:last-child { border-bottom: 0; }
+  .pass { color: var(--pass); font-weight: 600; }
+  .fail { color: var(--fail); font-weight: 600; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Session state test</h1>
+  <p class="sub">Exercises <code>Ark.SessionState.AdoNet</code> through real ASP.NET requests.</p>
+
+  <section>
+    <h2>Automated checks</h2>
+    <div class="row">
+      <button class="primary" id="runAll">Run all checks</button>
+      <button id="runExpiry">Run expiry check (about 70 s)</button>
+      <span id="summary" class="muted"></span>
+    </div>
+    <ul class="checks" id="checks"></ul>
+  </section>
+
+  <section>
+    <h2>Manual</h2>
+    <div class="row">
+      <button data-url="api/session?action=info">Info</button>
+      <button data-url="api/session?action=increment">Increment counter</button>
+      <button data-url="api/readonly">Read-only request</button>
+      <button data-url="api/session?action=slow&ms=3000">Slow (3 s, holds lock)</button>
+      <button data-url="api/session?action=big">Store 200 KB value</button>
+      <button data-url="api/session?action=abandon">Abandon</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="key" placeholder="key" value="color">
+      <input id="value" placeholder="value" value="blue">
+      <button id="setBtn">Set value</button>
+      <input id="minutes" type="number" min="1" value="1" style="width:80px">
+      <button id="timeoutBtn">Set Session.Timeout (minutes)</button>
+    </div>
+    <pre id="out" class="muted">Responses appear here.</pre>
+  </section>
+
+  <section>
+    <h2>Database rows</h2>
+    <div class="row"><button id="rowsBtn">Refresh rows</button></div>
+    <pre id="rows" class="muted">Rows in AspNetSessionState appear here.</pre>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+async function call(url) {
+  const res = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`${res.status} ${url}\n${text.slice(0, 500)}`);
+  return JSON.parse(text);
+}
+
+function show(data) { $('out').textContent = JSON.stringify(data, null, 2); $('out').classList.remove('muted'); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+document.querySelectorAll('button[data-url]').forEach(b =>
+  b.addEventListener('click', async () => { try { show(await call(b.dataset.url)); } catch (e) { show(String(e)); } }));
+$('setBtn').onclick = async () => show(await call(`api/session?action=set&key=${encodeURIComponent($('key').value)}&value=${encodeURIComponent($('value').value)}`));
+$('timeoutBtn').onclick = async () => show(await call(`api/session?action=timeout&minutes=${$('minutes').value}`));
+$('rowsBtn').onclick = async () => { $('rows').textContent = JSON.stringify(await call('api/rows'), null, 2); $('rows').classList.remove('muted'); };
+
+// ---- automated checks ----
+const results = [];
+function report(name, ok, detail) {
+  results.push({ name, ok });
+  const li = document.createElement('li');
+  li.innerHTML = `<span class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}</span> ${name}` +
+    (detail ? ` <span class="muted">(${detail})</span>` : '');
+  $('checks').appendChild(li);
+}
+async function check(name, fn) {
+  try { const r = await fn(); report(name, r === undefined ? true : !!r.ok, r && r.detail); }
+  catch (e) { report(name, false, e.message); }
+}
+function finish() {
+  const failed = results.filter(r => !r.ok).length;
+  $('summary').innerHTML = failed ? `<span class="fail">${failed} of ${results.length} failed</span>`
+                                  : `<span class="pass">All ${results.length} checks passed</span>`;
+  window.__checkResults = results.slice();
+  document.querySelectorAll('button').forEach(b => b.disabled = false);
+}
+function start() {
+  results.length = 0; $('checks').innerHTML = ''; $('summary').textContent = 'Running…';
+  document.querySelectorAll('button').forEach(b => b.disabled = true);
+}
+
+async function rowFor(id) { return (await call('api/rows')).rows.find(r => r.sessionId === id); }
+
+$('runAll').onclick = async () => {
+  start();
+  await call('api/session?action=abandon').catch(() => {});
+
+  let id;
+  await check('Values persist across requests', async () => {
+    await call('api/session?action=increment');
+    await call('api/session?action=increment');
+    const info = await call('api/session?action=increment');
+    id = info.sessionId;
+    return { ok: info.values.counter === 3, detail: `counter=${info.values.counter}` };
+  });
+
+  await check('String value round-trips', async () => {
+    const info = await call('api/session?action=set&key=color&value=blue%20%C3%A9');
+    const again = await call('api/readonly');
+    return { ok: again.values.color === 'blue é', detail: `color=${again.values.color}` };
+  });
+
+  await check('Row is stored in the database, unlocked', async () => {
+    const row = await rowFor(id);
+    return { ok: !!row && !row.locked && row.itemsBytes > 0, detail: row ? `lockId=${row.lockId}, ${row.itemsBytes} bytes` : 'no row' };
+  });
+
+  await check('Large (200 KB) value round-trips', async () => {
+    await call('api/session?action=big');
+    const info = await call('api/readonly');
+    const row = await rowFor(id);
+    return { ok: info.values.big === '<string of 204800 chars>' && row.itemsBytes > 204800, detail: `${row.itemsBytes} bytes stored` };
+  });
+
+  await check('Concurrent writers are serialized by the lock', async () => {
+    const before = (await call('api/readonly')).values.counter;
+    const t0 = performance.now();
+    await Promise.all([call('api/session?action=slow&ms=1500'), call('api/session?action=slow&ms=1500')]);
+    const elapsed = performance.now() - t0;
+    const after = (await call('api/readonly')).values.counter;
+    return { ok: elapsed >= 2900 && after === before + 2, detail: `${Math.round(elapsed)} ms for two 1.5 s requests, counter ${before}→${after}` };
+  });
+
+  await check('Read-only request waits for an exclusive lock', async () => {
+    const slow = call('api/session?action=slow&ms=2000');
+    await sleep(300);
+    const t0 = performance.now();
+    await call('api/readonly');
+    const waited = performance.now() - t0;
+    await slow;
+    return { ok: waited >= 1200, detail: `waited ${Math.round(waited)} ms` };
+  });
+
+  await check('Lock is released after requests finish', async () => {
+    const row = await rowFor(id);
+    return { ok: !!row && !row.locked, detail: row ? `locked=${row.locked}, lockId=${row.lockId}` : 'no row' };
+  });
+
+  await check('Session.Timeout change is saved', async () => {
+    await call('api/session?action=timeout&minutes=7');
+    const info = await call('api/readonly');
+    const row = await rowFor(id);
+    await call('api/session?action=timeout&minutes=20');
+    return { ok: info.timeoutMinutes === 7 && row.timeout === 7, detail: `session=${info.timeoutMinutes}, db=${row.timeout}` };
+  });
+
+  await check('Abandon deletes the session row', async () => {
+    await call('api/session?action=abandon');
+    const row = await rowFor(id);
+    return { ok: !row, detail: row ? 'row still present' : 'row deleted' };
+  });
+
+  await check('Next request starts a fresh, empty session', async () => {
+    // ASP.NET reuses the session ID from the cookie, so the new session has the same ID.
+    const info = await call('api/session?action=info');
+    return { ok: info.isNewSession && Object.keys(info.values).length === 0,
+             detail: `isNewSession=${info.isNewSession}, values=${JSON.stringify(info.values)}` };
+  });
+
+  finish();
+};
+
+$('runExpiry').onclick = async () => {
+  start();
+  await check('Session expires after Session.Timeout', async () => {
+    await call('api/session?action=abandon').catch(() => {});
+    await call('api/session?action=set&key=expiry&value=yes');
+    const info = await call('api/session?action=timeout&minutes=1');
+    for (let s = 70; s > 0; s -= 5) { $('summary').textContent = `Waiting ${s} s for the session to expire…`; await sleep(5000); }
+    const after = await call('api/readonly');
+    return { ok: after.values.expiry === undefined, detail: `before: expiry=${info.values.expiry}, after: ${JSON.stringify(after.values)}` };
+  });
+  finish();
+};
+</script>
+</body>

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Classic ASP.NET (System.Web) site. It's an ordinary class library whose output goes to
+       bin\, which is all IIS / IIS Express need, so `dotnet build` is enough.
+       Run it with IIS Express: see README.md in this folder. -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <OutputPath>bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ark.SessionState.AdoNet\Ark.SessionState.AdoNet.csproj" />
+  </ItemGroup>
+
+  <!-- Copy the schema scripts into App_Data\sql so the site can create its table on first run. -->
+  <ItemGroup>
+    <SqlScript Include="..\..\sql\*.sql" />
+  </ItemGroup>
+  <Target Name="CopySqlScripts" AfterTargets="Build">
+    <Copy SourceFiles="@(SqlScript)" DestinationFolder="App_Data\sql" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>
